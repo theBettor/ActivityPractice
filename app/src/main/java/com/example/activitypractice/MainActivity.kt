@@ -84,9 +84,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onPause() {
-        job?.cancel()
         super.onPause()
         Log.i(TAG, "onPause")
+        job?.cancel()
     }
 
     override fun onStop() {
