@@ -11,8 +11,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.activitypractice.databinding.ActivityMainBinding
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.awaitCancellation
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -25,7 +23,7 @@ class MainActivity : AppCompatActivity() {
     private val TAG = "MainActivity"
     private var counter = 1
     private var randomValue = (1..100).random()
-    private var btnbool : Boolean = false
+    private var btnbool: Boolean = false
 
 //    1. 화면 회전시 랜덤변수, counter 유지하기
 //    2. 카운터가 100이 되었을 때 화면을 회전하면 1로 바뀌는 원인 찾은 후, 회전 하더라도 100으로 유지되도록 출력하기
@@ -53,17 +51,15 @@ class MainActivity : AppCompatActivity() {
 //            counter = savedInstanceState.getInt("counter")
 //        }
 
-        if (savedInstanceState == null) {
-        } else {
+        if (savedInstanceState != null) {
             randomValue = savedInstanceState.getInt("randomValue")
-            counter = savedInstanceState.getInt("counter")
-            Log.i(TAG, "counter : ${counter}")
-            if (counter > 100) {
-                counter = 100
-            }
             btnbool = savedInstanceState.getBoolean("btnValue")
-            binding.spartaTextView.text = counter.toString()
         }
+
+//            counter = savedInstanceState.getInt("counter") // 이게 resotre로 가야함
+
+//            binding.spartaTextView.text = counter.toString() // 이건 이미 setjob에 있었다.
+
 
 //        if(savedInstanceState != null){
 //            randomValue = savedInstanceState.getInt("randomValue")
@@ -83,13 +79,14 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         Log.i(TAG, "onResume")
+        setJobAndLaunch()
+
     }
 
     override fun onPause() {
         job?.cancel()
         super.onPause()
         Log.i(TAG, "onPause")
-
     }
 
     override fun onStop() {
@@ -100,7 +97,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        setJobAndLaunch()
         Log.i(TAG, "onStart")
     }
 
@@ -112,15 +108,18 @@ class MainActivity : AppCompatActivity() {
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
         Log.i(TAG, "onRestoreInstanceState")
+        counter = savedInstanceState.getInt("counter")
+        if (counter > 100) {
+            counter = 100
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        //        Log.i(TAG, "onSaveInstanceState")
         outState.putInt("counter", counter)
         outState.putInt("randomValue", randomValue)
-        super.onSaveInstanceState(outState)
-        Log.i(TAG, "onSaveInstanceState")
         outState.putBoolean("btnValue", btnbool)
-
     }
 
     private fun setupButton() {
@@ -140,15 +139,15 @@ class MainActivity : AppCompatActivity() {
     private fun setJobAndLaunch() {
         job?.cancel() // job is uninitialized exception
         job = lifecycleScope.launch {
-              if (isActive) {
-                  while (counter <= 100) {
-                      Log.i(TAG, "count")
+            if (isActive) {
+                while (counter <= 100) {
+                    Log.i(TAG, "count")
                     binding.spartaTextView.text = counter.toString()
-                      if (btnbool == true) {
-                          break
-                      }
+                    if (btnbool) {
+                        break
+                    }
                     delay(100) // 1초 = 1000 // restore보다
-                      counter += 1
+                    counter += 1
                 }
             }
         }
